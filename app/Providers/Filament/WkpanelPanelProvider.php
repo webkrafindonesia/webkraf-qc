@@ -28,12 +28,13 @@ class WkpanelPanelProvider extends PanelProvider
             ->path('wkpanel')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::hex('#b91313'),
+                //'danger' => Color::hex('#00F'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                //Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -54,6 +55,8 @@ class WkpanelPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->topNavigation();
+            ->topNavigation()
+            ->brandName('WebKraf QC')
+            ->brandLogo(asset('logo/logo-horizontal.svg'));
     }
 }

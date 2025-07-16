@@ -108,7 +108,6 @@ class TestCaseIDResource extends Resource
             'create' => Pages\CreateTestCaseID::route('/create'),
             'view' => Pages\ViewTestCaseID::route('/{record}'),
             'edit' => Pages\EditTestCaseID::route('/{record}/edit'),
-            'testing' => Pages\TestingPage::route('/{record}/testing'),
         ];
     }
 
@@ -119,4 +118,9 @@ class TestCaseIDResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    public static function canAccess(): bool 
+    { 
+        return auth()->user()->id === 1; 
+    } 
 }

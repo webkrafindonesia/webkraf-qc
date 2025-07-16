@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TestCaseResource\Pages;
 use App\Filament\Resources\TestCaseResource\RelationManagers;
 use App\Models\TestCase;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Section;
@@ -14,12 +15,14 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\Action;
 
 class TestCaseResource extends Resource
 {
     protected static ?string $model = TestCase::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationLabel = 'Test Scenario';
 
     protected static ?int $navigationSort = 1;
 
@@ -69,10 +72,33 @@ class TestCaseResource extends Resource
                             ->searchable()
                             ->default('SIT')
                             ->required(),
-                        Forms\Components\TextInput::make('tester_name')
-                            ->maxLength(255)
-                            ->required()
-                            ->default(null),
+                        Forms\Components\Repeater::make('testers')
+                            ->relationship('testers')
+                            ->schema([
+                                Forms\Components\Select::make('user_id')
+                                    ->options(function(){
+                                        $users = User::all()->pluck('name','id');
+                                        return $users;
+                                    })
+                                    ->searchable()
+                                    ->required(),
+                            ])
+                            ->columns(1),
+                    ]),
+                Section::make('Status')
+                    ->description('Status testing')
+                    ->aside()
+                    ->schema([
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'Draft' => 'Draft',
+                                'In Progress' => 'In Progress',
+                                'Completed' => 'Completed',
+                                'Archived' => 'Archived',
+                            ])
+                            ->searchable()
+                            ->default('Draft')
+                            ->required(),
                         Split::make([
                             Forms\Components\DatePicker::make('start_date'),
                             Forms\Components\DatePicker::make('end_date'),
@@ -84,30 +110,37 @@ class TestCaseResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn () => null)
             ->columns([
                 Tables\Columns\TextColumn::make('system_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('system_version')
+                    ->description(fn($record)=>$record->system_version)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('company')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type'),
                 Tables\Columns\TextColumn::make('status'),
-                Tables\Columns\TextColumn::make('tester_name')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('testers.tester.name')
+                    ->listWithLineBreaks(),
                 Tables\Columns\TextColumn::make('start_date')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('end_date')
-                    ->date()
+                    ->formatStateUsing(fn($state) => convertDateID($state))
+                    ->description(fn($record)=>'End: '.convertDateID($record->end_date))
+                    //->date()
+                    ->prefix('Start: ')
                     ->sortable(),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make()
+                    ->visible(fn()=>auth()->user()->id == 1),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn() => auth()->user()->id == 1),
+                Action::make('testing')
+                   ->label('Start Testing')
+                   ->url(fn ($record): string => TestCaseResource::getUrl('testing', ['record' => $record->id]))
+                   ->openUrlInNewTab()
+                   ->icon('heroicon-o-eye')
+                   ->visible(fn($record) => in_array($record->status, ['In Progress', 'Completed'])),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -132,12 +165,19 @@ class TestCaseResource extends Resource
             'create' => Pages\CreateTestCase::route('/create'),
             'view' => Pages\ViewTestCase::route('/{record}'),
             'edit' => Pages\EditTestCase::route('/{record}/edit'),
+            'testing' => Pages\TestingPage::route('/{record}/testing'),
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->when(auth()->user()->id != 1, function($q){
+                $q->whereHas('testers', function($q2){
+                    $q2->where('user_id', auth()->user()->id);
+                })
+                ->whereIn('status',['In Progress', 'Completed']);
+            })
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);

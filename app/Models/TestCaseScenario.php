@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
-class TestCaseScenario extends Model
+class TestCaseScenario extends Model implements HasMedia
 {
     use SoftDeletes;
     use InteractsWithMedia;

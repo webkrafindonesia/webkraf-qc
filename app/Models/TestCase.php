@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TestCase extends Model
 {
+    use HasUuids;
     use SoftDeletes;
 
     protected $fillable = [
@@ -30,6 +32,7 @@ class TestCase extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'platform_version' => 'array',
+        'tester_name' => 'array'
     ];
 
     protected $dates = [
@@ -41,5 +44,10 @@ class TestCase extends Model
     public function categories()
     {
         return $this->hasMany(TestCaseCategory::class, 'test_case_id');
+    }
+
+    public function testers()
+    {
+        return $this->hasMany(TestCaseTester::class, 'test_case_id');
     }
 }

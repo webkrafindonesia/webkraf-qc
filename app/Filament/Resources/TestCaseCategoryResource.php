@@ -93,4 +93,9 @@ class TestCaseCategoryResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    public static function canAccess(): bool 
+    { 
+        return auth()->user()->id === 1; 
+    } 
 }

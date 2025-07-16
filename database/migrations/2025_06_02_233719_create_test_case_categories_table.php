@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('test_case_categories', function (Blueprint $table) {
             $table->id();
-            $table->integer('test_case_id')->unsigned();
+            $table->uuid('test_case_id')->index();
             $table->string('category_name');
             $table->string('description')->nullable();
             $table->timestamps();
