@@ -42,8 +42,10 @@ class ScenariosRelationManager extends RelationManager
             ->recordTitleAttribute('scenario_name')
             ->columns([
                 Tables\Columns\TextColumn::make('scenario_name')
+                    ->wrap()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('expected_result')
+                    ->wrap()
                     ->searchable(),
             ])
             ->filters([
