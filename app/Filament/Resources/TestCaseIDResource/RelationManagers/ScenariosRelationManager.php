@@ -39,6 +39,7 @@ class ScenariosRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->reorderable('sort')
             ->recordTitleAttribute('scenario_name')
             ->columns([
                 Tables\Columns\TextColumn::make('scenario_name')
@@ -69,8 +70,11 @@ class ScenariosRelationManager extends RelationManager
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ])
-            ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]));
+            ->modifyQueryUsing(fn (Builder $query) =>
+                $query->withoutGlobalScopes([
+                    SoftDeletingScope::class,
+                ])
+                ->orderBy('sort', 'asc')
+            );
     }
 }

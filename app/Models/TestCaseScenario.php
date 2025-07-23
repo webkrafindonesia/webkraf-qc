@@ -13,6 +13,7 @@ class TestCaseScenario extends Model implements HasMedia
     use InteractsWithMedia;
 
     protected $fillable = [
+        'sort',
         'test_case_id_id',
         'scenario_name',
         'scenario_steps',

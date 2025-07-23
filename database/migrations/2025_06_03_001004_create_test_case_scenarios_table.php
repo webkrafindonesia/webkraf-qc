@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('test_case_scenarios', function (Blueprint $table) {
             $table->id();
+            $table->integer('sort')->nullable();
             $table->integer('test_case_id_id')->unsigned()->nullable();
             $table->string('scenario_name');
             $table->longText('scenario_steps');

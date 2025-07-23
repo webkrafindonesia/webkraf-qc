@@ -54,6 +54,7 @@ class TestingPage extends Page implements HasTable
                             $query2->where('test_case_id',$testCaseId);
                         });
                     })
+                    ->orderBy('sort', 'asc')
                 )
             ->columns([
                 TextColumn::make('scenario_name')
