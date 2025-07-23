@@ -37,6 +37,6 @@ class TestCaseScenario extends Model implements HasMedia
 
     public function testCaseId()
     {
-        return $this->belongsTo(TestCaseId::class, 'test_case_id_id');
+        return $this->belongsTo(TestCaseID::class, 'test_case_id_id');
     }
 }
