@@ -6,6 +6,7 @@ use App\Filament\Resources\TestCaseResource\Pages;
 use App\Filament\Resources\TestCaseResource\RelationManagers;
 use App\Models\TestCase;
 use App\Models\User;
+use App\Jobs\CopyTestCase;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\Section;
@@ -16,6 +17,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\Action;
+use Filament\Notifications\Notification;
 
 class TestCaseResource extends Resource
 {
@@ -135,6 +137,21 @@ class TestCaseResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->visible(fn() => auth()->user()->id == 1),
+                Action::make('copy')
+                    ->label('Copy')
+                    ->icon('heroicon-m-document-duplicate')
+                    ->color('gray')
+                    ->action(function ($record) {
+                        CopyTestCase::dispatch($record);
+
+                        Notification::make()
+                            ->title('Copied on progress. Please check periodically.')
+                            ->success()
+                            ->color('success')
+                            ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->tooltip('Copy this scenario'),
                 Action::make('testing')
                    ->label('Start Testing')
                    ->url(fn ($record): string => TestCaseResource::getUrl('testing', ['record' => $record->id]))
