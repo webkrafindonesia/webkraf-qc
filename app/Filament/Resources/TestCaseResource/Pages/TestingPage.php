@@ -93,7 +93,8 @@ class TestingPage extends Page implements HasTable
             ->defaultGroup('testCaseId.id_name')
             ->groups([
                 Group::make('testCaseId.id_name')
-                ->titlePrefixedWithLabel(false),
+                ->titlePrefixedWithLabel(false)
+                ->collapsible(),
             ])
             ->actions([
                 Action::make('upload')
