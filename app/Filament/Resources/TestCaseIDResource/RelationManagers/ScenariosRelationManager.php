@@ -6,6 +6,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -62,6 +63,16 @@ class ScenariosRelationManager extends RelationManager
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\ForceDeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
+                Action::make('copy')
+                    ->label('Copy')
+                    ->icon('heroicon-m-document-duplicate')
+                    ->color('gray')
+                    ->action(function ($record) {
+                        $new = $record->replicate(); // salin data
+                        $new->save(); // simpan sebagai record baru
+                    })
+                    ->requiresConfirmation()
+                    ->tooltip('Copy this row'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
