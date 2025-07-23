@@ -27,22 +27,17 @@ class TestCaseIDResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('test_case_category_id')
-                    ->numeric()
-                    ->default(null),
+                Forms\Components\Placeholder::make('test_case')
+                    ->label('Test Case')
+                    ->content(fn (TestCaseID $record): string => $record->category->testCase->system_name.' ('.$record->category->testCase->system_version.')'),
+                Forms\Components\Placeholder::make('test_case_type')
+                    ->label('Type')
+                    ->content(fn (TestCaseID $record): string => $record->category->testCase->type),
                 Forms\Components\TextInput::make('id_name')
+                    ->label('Test Case ID')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('description')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('created_by')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('updated_by')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('deleted_by')
                     ->maxLength(255)
                     ->default(null),
             ]);
@@ -52,30 +47,20 @@ class TestCaseIDResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('test_case_category_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('category.testCase.system_name')
+                    ->description(function($record) {
+                        return ($record->category->testCase) ? $record->category->testCase->system_version.' ['.$record->category->testCase->type.']' : '';
+                    })
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('category.category_name')
+                    ->label('Test Case Category')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('id_name')
+                    ->label('Test Case ID')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('description')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('created_by')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('updated_by')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_by')
                     ->searchable(),
             ])
             ->filters([
@@ -116,11 +101,14 @@ class TestCaseIDResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->whereHas('category', function (Builder $query) {
+                $query->whereHas('testCase');
+            });
     }
 
-    public static function canAccess(): bool 
-    { 
-        return auth()->user()->id === 1; 
-    } 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->id === 1;
+    }
 }
