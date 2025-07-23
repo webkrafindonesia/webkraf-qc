@@ -10,6 +10,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Models\TestCaseScenario;
 
 class ScenariosRelationManager extends RelationManager
 {
@@ -55,7 +56,12 @@ class ScenariosRelationManager extends RelationManager
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make()
-                    ->modalWidth('sm'),
+                    ->modalWidth('sm')
+                    ->mutateFormDataUsing(function (array $data) {
+                        $scenario = TestCaseScenario::where('test_case_id_id',$this->ownerRecord->id)->orderBy('sort','desc')->first();
+                        $data['sort'] = $scenario ? $scenario->sort + 1 : 1;
+                        return $data;
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
