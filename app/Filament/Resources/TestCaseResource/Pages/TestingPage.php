@@ -68,7 +68,8 @@ class TestingPage extends Page implements HasTable
                         return new HtmlString($data);
                     })
                     ->html()
-                    ->label('Scenario Name'),
+                    ->wrap()
+                    ->label('Scenario'),
                 TextColumn::make('expected_result')
                     ->wrap(),
                 TextInputColumn::make('actual_result'),
