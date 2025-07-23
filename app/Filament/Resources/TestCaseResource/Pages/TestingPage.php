@@ -93,8 +93,9 @@ class TestingPage extends Page implements HasTable
             ->defaultGroup('testCaseId.id_name')
             ->groups([
                 Group::make('testCaseId.id_name')
-                ->titlePrefixedWithLabel(false)
-                ->collapsible(),
+                    ->getDescriptionFromRecordUsing(fn ($record): string => $record->testCaseId->category->category_name)
+                    ->titlePrefixedWithLabel(false)
+                    ->collapsible(),
             ])
             ->actions([
                 Action::make('upload')
