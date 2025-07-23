@@ -151,7 +151,8 @@ class TestCaseResource extends Resource
                             ->send();
                     })
                     ->requiresConfirmation()
-                    ->tooltip('Copy this scenario'),
+                    ->tooltip('Copy this scenario')
+                    ->visible(fn() => auth()->user()->id == 1),
                 Action::make('testing')
                    ->label('Start Testing')
                    ->url(fn ($record): string => TestCaseResource::getUrl('testing', ['record' => $record->id]))
