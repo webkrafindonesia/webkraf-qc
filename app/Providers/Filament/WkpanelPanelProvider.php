@@ -25,7 +25,7 @@ class WkpanelPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('wkpanel')
-            ->path('wkpanel')
+            ->path(env('FILAMENT_PATH'))
             ->login()
             ->colors([
                 'primary' => Color::hex('#b91313'),
@@ -57,6 +57,7 @@ class WkpanelPanelProvider extends PanelProvider
             ])
             ->topNavigation()
             ->brandName('WebKraf QC')
-            ->brandLogo(asset('logo/logo-horizontal.svg'));
+            ->brandLogo(asset('logo/logo-horizontal.svg'))
+            ->domain(env('FILAMENT_DOMAIN'));
     }
 }
