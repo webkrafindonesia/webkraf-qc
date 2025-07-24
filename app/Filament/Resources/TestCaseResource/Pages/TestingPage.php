@@ -57,6 +57,7 @@ class TestingPage extends Page implements HasTable
                             $query2->where('test_case_id',$testCaseId);
                         });
                     })
+                    ->orderBy('test_case_id_id', 'asc')
                     ->orderBy('sort', 'asc')
                 )
             ->columns([
