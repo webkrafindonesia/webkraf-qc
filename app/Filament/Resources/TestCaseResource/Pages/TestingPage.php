@@ -22,6 +22,9 @@ use Filament\Tables\Actions\Action;
 use Illuminate\Support\HtmlString;
 use Illuminate\Http\Request;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Support\Enums\FontWeight;
+use Filament\Forms;
+use Filament\Forms\Components\Split;
 
 class TestingPage extends Page implements HasTable
 {
@@ -66,21 +69,28 @@ class TestingPage extends Page implements HasTable
                             return ($index + 1) . '. ' . ($item['steps'] ?? '-');
                         })->implode("<br/>");
 
-                        return new HtmlString($data);
+                        $return = '<strong>Expected result:</strong><br/>'.$record->expected_result.'<br/><br/><strong>Steps:</strong><br/>' . $data;
+
+                        return new HtmlString($return);
                     })
+                    ->weight(FontWeight::Bold)
                     ->html()
                     ->wrap()
                     ->label('Scenario'),
-                TextColumn::make('expected_result')
-                    ->wrap(),
-                TextInputColumn::make('actual_result'),
-                SelectColumn::make('status')
-                    ->options([
-                        'Passed' => 'Passed',
-                        'Failed' => 'Failed',
-                        'Remark' => 'Remark'
-                    ]),
-                TextInputColumn::make('remarks'),
+                TextColumn::make('actual_result')
+                    ->label('Actual Result')
+                    ->formatStateUsing(fn ($state) => new HtmlString(nl2br($state)) ?: '')
+                    ->description(fn ($record) => ($record->remarks) ? new HtmlString('Remarks: '.nl2br($record->remarks)) : '')
+                    ->wrap()
+                    ->html(),
+                TextColumn::make('status')
+                    ->label('Status')
+                    ->color(fn ($record) => match ($record->status) {
+                        'Passed' => 'success',
+                        'Failed' => 'danger',
+                        'Remark' => 'warning',
+                        default => 'secondary',
+                    }),
             ])
             // ->recordClasses(function ($record) {
             //     return match ($record->status) {
@@ -98,10 +108,25 @@ class TestingPage extends Page implements HasTable
                     ->collapsible(),
             ])
             ->actions([
-                Action::make('upload')
-                    ->label('Upload Files')
+                Action::make('result')
+                    ->label('Result')
                     ->modalCancelActionLabel('Tutup')
                     ->form([
+                        Forms\Components\Select::make('status')
+                            ->options([
+                                'Passed' => 'Passed',
+                                'Failed' => 'Failed',
+                                'Remark' => 'Remark'
+                            ])
+                            ->required()
+                            ->default(fn($record) => $record->status),
+                        Split::make([
+                            Forms\Components\Textarea::make('actual_result')
+                                ->required()
+                                ->default(fn($record) => $record->actual_result),
+                            Forms\Components\Textarea::make('remarks')
+                                ->default(fn($record) => $record->remarks),
+                        ]),
                         SpatieMediaLibraryFileUpload::make('file')
                             ->label('Upload Files')
                             ->disk('minio')
@@ -114,23 +139,14 @@ class TestingPage extends Page implements HasTable
                             ->visibility('public')
                             ->saveRelationshipsUsing(fn ($component) => $component->saveUploadedFiles())
                             ->default(fn ($record) => $record->getMedia('attachments')->pluck('uuid')->toArray()),
-                    ]),
-            // Action::make('viewAttachment')
-            //     ->label('Lihat Attachment')
-            //     ->icon('heroicon-o-photo')
-            //     ->modalHeading('Attachment')
-            //     ->modalSubmitAction(false) // gak perlu tombol submit
-            //     ->modalCancelActionLabel('Tutup')
-            //     ->form([]) // tetap butuh ini biar bisa pakai modal
-            //     ->modalContent(function ($record) {
-            //         // Ambil semua media dari koleksi 'uploads'
-            //         $attachments = $record->getMedia('attachments');
-
-            //         // Return tampilan kustom pakai view() helper
-            //         return view('filament.components.testing-attachments', [
-            //             'attachments' => $attachments,
-            //         ]);
-            //     }),
+                    ])
+                    ->action(function ($record, array $data) {
+                        $record->update([
+                            'actual_result' => $data['actual_result'],
+                            'status' => $data['status'],
+                            'remarks' => $data['remarks'],
+                        ]);
+                    }),
         ])
         ->filters([
             SelectFilter::make('status')
@@ -139,19 +155,6 @@ class TestingPage extends Page implements HasTable
                     'Failed' => 'Failed',
                     'Remark' => 'Remark',
                 ])
-                // ->query(function(){
-                //     //dd($this->test_case_id);
-                //         TestCaseScenario::query()
-                //         ->whereHas('testCaseId', function($query){
-                //             $query->whereHas('category', function($query2){
-                //                 $query2->where('test_case_id',1);
-                //             });
-                //         });
-                //     }
-                // )
-                // ->query(function ($query, array $data) {
-                //     dd($data, $query->toSql(), $query->getBindings());
-                // })
         ]);
     }
 
