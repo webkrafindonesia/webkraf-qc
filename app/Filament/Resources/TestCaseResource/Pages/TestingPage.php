@@ -60,6 +60,9 @@ class TestingPage extends Page implements HasTable
                     ->orderBy('sort', 'asc')
                 )
             ->columns([
+                TextColumn::make('index')
+                    ->label('No. ')
+                    ->rowIndex(),
                 TextColumn::make('scenario_name')
                     ->searchable()
                     ->description(function($record){
