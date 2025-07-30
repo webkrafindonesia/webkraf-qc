@@ -27,6 +27,7 @@ class WkpanelPanelProvider extends PanelProvider
             ->id('wkpanel')
             ->path(env('FILAMENT_PATH'))
             ->login()
+            ->profile()
             ->colors([
                 'primary' => Color::hex('#b91313'),
                 //'danger' => Color::hex('#00F'),
