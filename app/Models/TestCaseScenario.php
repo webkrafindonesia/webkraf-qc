@@ -19,6 +19,7 @@ class TestCaseScenario extends Model implements HasMedia
         'scenario_steps',
         'expected_result',
         'actual_result',
+        'dev_notes',
         'status',
         'remarks',
         'created_by',

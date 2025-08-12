@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
+use App\Services\PercentageProgress;
 
 class TestCaseResource extends Resource
 {
@@ -129,36 +130,54 @@ class TestCaseResource extends Resource
                     //->date()
                     ->prefix('Start: ')
                     ->sortable(),
+                Tables\Columns\ViewColumn::make('Progress')
+                    ->label('Progress')
+                    ->view('filament.tables.columns.percentage_progress')
+                    ->viewData(function ($record) {
+                        $progress = new PercentageProgress($record->id);
+
+                        return array(
+                            'passed' => $progress->PassedProgress(),
+                            'failed' => $progress->FailedProgress(),
+                            'remark' => $progress->RemarkProgress(),
+                            'fixed' => $progress->FixedProgress(),
+                            'ready' => $progress->ReadyProgress(),
+                        );
+                    })
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make()
                     ->visible(fn()=>auth()->user()->id == 1),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->visible(fn() => auth()->user()->id == 1),
-                Action::make('copy')
-                    ->label('Copy')
-                    ->icon('heroicon-m-document-duplicate')
-                    ->color('gray')
-                    ->action(function ($record) {
-                        CopyTestCase::dispatch($record);
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->visible(fn() => auth()->user()->id == 1),
+                    Action::make('copy')
+                        ->label('Copy')
+                        ->icon('heroicon-m-document-duplicate')
+                        ->color('gray')
+                        ->action(function ($record) {
+                            CopyTestCase::dispatch($record);
 
-                        Notification::make()
-                            ->title('Copied on progress. Please check periodically.')
-                            ->success()
-                            ->color('success')
-                            ->send();
-                    })
-                    ->requiresConfirmation()
-                    ->tooltip('Copy this scenario')
-                    ->visible(fn() => auth()->user()->id == 1),
-                Action::make('testing')
-                   ->label('Start Testing')
-                   ->url(fn ($record): string => TestCaseResource::getUrl('testing', ['record' => $record->id]))
-                   ->openUrlInNewTab()
-                   ->icon('heroicon-o-eye')
-                   ->visible(fn($record) => in_array($record->status, ['In Progress', 'Completed'])),
+                            Notification::make()
+                                ->title('Copied on progress. Please check periodically.')
+                                ->success()
+                                ->color('success')
+                                ->send();
+                        })
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->tooltip('Copy this scenario')
+                        ->visible(fn() => auth()->user()->id == 1),
+                    Action::make('testing')
+                        ->label('Start Testing')
+                        ->url(fn ($record): string => TestCaseResource::getUrl('testing', ['record' => $record->id]))
+                        ->openUrlInNewTab()
+                        ->color('success')
+                        ->icon('heroicon-o-eye')
+                        ->visible(fn($record) => in_array($record->status, ['In Progress', 'Completed'])),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

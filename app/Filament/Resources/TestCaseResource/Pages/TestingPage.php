@@ -25,6 +25,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Support\Enums\FontWeight;
 use Filament\Forms;
 use Filament\Forms\Components\Split;
+use Filament\Forms\Get;
 
 class TestingPage extends Page implements HasTable
 {
@@ -89,10 +90,12 @@ class TestingPage extends Page implements HasTable
                     ->html(),
                 TextColumn::make('status')
                     ->label('Status')
+                    ->description(fn ($record) => ($record->dev_notes) ? new HtmlString('Notes: '.nl2br($record->dev_notes)) : '')
                     ->color(fn ($record) => match ($record->status) {
                         'Passed' => 'success',
                         'Failed' => 'danger',
                         'Remark' => 'warning',
+                        'Fixed by Dev' => 'info',
                         default => 'secondary',
                     }),
             ])
@@ -120,9 +123,11 @@ class TestingPage extends Page implements HasTable
                             ->options([
                                 'Passed' => 'Passed',
                                 'Failed' => 'Failed',
-                                'Remark' => 'Remark'
+                                'Remark' => 'Remark',
+                                'Fixed by Dev' => 'Fixed by Dev'
                             ])
                             ->required()
+                            ->live()
                             ->default(fn($record) => $record->status),
                         Split::make([
                             Forms\Components\Textarea::make('actual_result')
@@ -131,6 +136,11 @@ class TestingPage extends Page implements HasTable
                             Forms\Components\Textarea::make('remarks')
                                 ->default(fn($record) => $record->remarks),
                         ]),
+                        Forms\Components\Textarea::make('dev_notes')
+                            ->label('Notes from Developer')
+                            ->helperText('Only filled by Developer')
+                            ->default(fn($record) => $record->dev_notes)
+                            ->visible(fn (Get $get, $state): bool => $get('status') == 'Fixed by Dev' || !empty($state)),
                         SpatieMediaLibraryFileUpload::make('file')
                             ->label('Upload Files')
                             ->disk('minio')
@@ -149,6 +159,7 @@ class TestingPage extends Page implements HasTable
                             'actual_result' => $data['actual_result'],
                             'status' => $data['status'],
                             'remarks' => $data['remarks'],
+                            'dev_notes' => ($data['dev_notes']) ?? null,
                         ]);
                     }),
         ])
@@ -158,6 +169,7 @@ class TestingPage extends Page implements HasTable
                     'Passed' => 'Passed',
                     'Failed' => 'Failed',
                     'Remark' => 'Remark',
+                    'Fixed by Dev' => 'Fixed by Dev',
                 ])
         ]);
     }

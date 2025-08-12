@@ -19,7 +19,8 @@ return new class extends Migration
             $table->longText('scenario_steps');
             $table->text('expected_result')->nullable();
             $table->text('actual_result')->nullable();
-            $table->enum('status', ['Passed', 'Failed', 'Remark'])->nullable();
+            $table->text('dev_notes')->nullable();
+            $table->enum('status', ['Passed', 'Failed', 'Remark', 'Fixed by Dev'])->nullable();
             $table->longText('remarks')->nullable();
             $table->timestamps();
             $table->softDeletes();
