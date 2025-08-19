@@ -97,7 +97,9 @@ class TestingPage extends Page implements HasTable
                         'Remark' => 'warning',
                         'Fixed by Dev' => 'info',
                         default => 'secondary',
-                    }),
+                    })
+                    ->wrap()
+                    ->html(),
             ])
             // ->recordClasses(function ($record) {
             //     return match ($record->status) {
